@@ -14,10 +14,10 @@ namespace Steinberg {
 			void pushSample(float sample);
 			float listenSample();
 		private:
-			CircularAudioBuffer _audioBuffer;
+			CircularAudioBuffer** _audioBuffers;
 			float _size;
 			int _sampleRate;
-			Reflection** _reflections;
+			float _decay;
 		};
 	}
 }

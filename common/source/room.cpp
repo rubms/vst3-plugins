@@ -4,30 +4,26 @@
 
 namespace Steinberg {
 	namespace HelloWorld {
-		Room::Room(float size, float decay, int sampleRate) : _audioBuffer(sampleRate * 0.5) {
-			static const float earlyReflections[10] = { 0.0, 0.05, 0.07, 0.09, 0.17, 0.25, 0.43, 0.6, 0.75, 0.95 };
+		Room::Room(float size, float decay, int sampleRate) {
 
 			_size = std::max<float>(size, 0.01);
 			_sampleRate = sampleRate;
-			_audioBuffer.fillWithSilence();
-			_reflections = new Reflection*[10];
+			_decay = decay;
+			_audioBuffers = new CircularAudioBuffer*[6];
 
-			int earlyReflecionsStartSample = (int) (sampleRate * _size * 0.040);
-			int earlyReflecionsDurationSamples = (int) (sampleRate * _size * 0.080);
-			int lateReflectionsDurationSamples = 0.5 * sampleRate - (earlyReflecionsStartSample + earlyReflecionsDurationSamples);
-			
-			for (int i = 0; i < 10; i++) {
-				int reflectionSampleOffset = earlyReflecionsStartSample + (earlyReflecionsDurationSamples * earlyReflections[i]);
-				float reflectionDecay = (1 - (reflectionSampleOffset / ((float) sampleRate * 0.5))) /* * decay*/;
-				_reflections[i] = new Reflection(&_audioBuffer, reflectionSampleOffset, reflectionDecay);
-			}
+			_audioBuffers[0] = new CircularAudioBuffer(sampleRate * 0.0101);
+			_audioBuffers[1] = new CircularAudioBuffer(sampleRate * 0.0117);
+			_audioBuffers[2] = new CircularAudioBuffer(sampleRate * 0.015);
+			_audioBuffers[3] = new CircularAudioBuffer(sampleRate * 0.019);
+			_audioBuffers[4] = new CircularAudioBuffer(sampleRate * 0.021);
+			_audioBuffers[5] = new CircularAudioBuffer(sampleRate * 0.023);
 		}
 
 		Room::~Room() {
-			for (int i = 0; i < 10; i++) {
-				delete _reflections[i];
+			for (int i = 0; i < 6; i++) {
+				delete _audioBuffers[i];
 			}
-			delete[] _reflections;
+			delete[] _audioBuffers;
 		}
 
 		void Room::pushSample(float sample) {
