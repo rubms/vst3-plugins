@@ -37,7 +37,8 @@
 #pragma once
 
 #include "public.sdk/source/vst/vstaudioeffect.h"
-#include "circularaudiobuffer.h"
+#include "../../common/include/circularaudiobuffer.h"
+#include "../../common/include/bypasser.h"
 
 namespace Steinberg {
 namespace HelloWorld {
@@ -71,8 +72,8 @@ protected:
 private:
 	int32 getNumberOfChannels();
 	std::vector<CircularAudioBuffer*> _circularAudioBuffers;
-	void byPass(Vst::ProcessData& data);
 	int32* _delays;
+	ByPasser byPasser;
 };
 
 //------------------------------------------------------------------------

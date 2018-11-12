@@ -63,24 +63,6 @@ int32 PlugProcessor::getNumberOfChannels()
 	return Vst::SpeakerArr::getChannelCount(arr);
 }
 
-void PlugProcessor::byPass(Vst::ProcessData & data)
-{
-	if (data.numSamples > 0)
-	{
-		int32 numChannels = getNumberOfChannels();
-
-		for (int32 channel = 0; channel < numChannels; channel++) {
-			float* inputChannel = data.inputs[0].channelBuffers32[channel];
-			float* outputChannel = data.outputs[0].channelBuffers32[channel];
-
-			for (int32 sample = 0; sample < data.numSamples; sample++)
-			{
-				outputChannel[sample] = inputChannel[sample];
-			}
-		}
-	}
-}
-
 //-----------------------------------------------------------------------------
 tresult PLUGIN_API PlugProcessor::initialize (FUnknown* context)
 {
@@ -198,7 +180,7 @@ tresult PLUGIN_API PlugProcessor::process (Vst::ProcessData& data)
 	}
 
 	if (mBypass) {
-		byPass(data);
+		byPasser.byPass(data, getNumberOfChannels());
 		return kResultOk;
 	}
 

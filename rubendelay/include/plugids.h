@@ -49,8 +49,8 @@ enum RubenDelayParams : Vst::ParamID
 
 // HERE you have to define new unique class ids: for processor and for controller
 // you can use GUID creator tools like https://www.guidgenerator.com/
-static const FUID MyProcessorUID (0xBD58B550, 0xF9E5634E, 0x9D2EFF39, 0xEA0927B1);
-static const FUID MyControllerUID (0xA0B1A6F4, 0x005D9B47, 0x967177E3, 0x7A671891);
+static const FUID MyProcessorUID (0x0ea49008, 0x05354a43, 0x98be8d00, 0x04fac0b2);
+static const FUID MyControllerUID (0x6ada3a6e, 0xc8c34611, 0xbbba035c2, 0x694bbed);
 
 //------------------------------------------------------------------------
 } // namespace HelloWorld

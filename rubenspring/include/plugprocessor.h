@@ -37,7 +37,8 @@
 #pragma once
 
 #include "public.sdk/source/vst/vstaudioeffect.h"
-#include "spring.h"
+#include "../../common/include/bypasser.h"
+#include "../../common/include/spring.h"
 
 namespace Steinberg {
 namespace HelloWorld {
@@ -73,7 +74,7 @@ protected:
 private:
 	int32 getNumberOfChannels();
 	std::vector<Spring*> _springs;
-	void byPass(Vst::ProcessData& data);
+	ByPasser byPasser;
 };
 
 //------------------------------------------------------------------------

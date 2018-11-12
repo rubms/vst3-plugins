@@ -4,11 +4,13 @@ set(plug_sources
     include/plugids.h
     include/plugprocessor.h
     include/version.h
-	include/circularaudiobuffer.h
+	../common/include/circularaudiobuffer.h
+	../common/include/bypasser.h
     source/plugfactory.cpp
     source/plugcontroller.cpp
     source/plugprocessor.cpp
-	source/circularaudiobuffer.cpp
+	../common/source/circularaudiobuffer.cpp
+	../common/source/bypasser.cpp
 )
 
 #--- HERE change the target Name for your plug-in (for ex. set(target myDelay))-------
