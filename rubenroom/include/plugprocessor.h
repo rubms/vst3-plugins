@@ -37,7 +37,7 @@
 #pragma once
 
 #include "public.sdk/source/vst/vstaudioeffect.h"
-#include "../../common/include/circularaudiobuffer.h"
+#include "../../common/include/room.h"
 #include "../../common/include/bypasser.h"
 
 namespace Steinberg {
@@ -67,12 +67,11 @@ public:
 	}
 
 protected:
-	Vst::ParamValue mParam1 = 0;
+	Vst::ParamValue mParam1 = 0.5;
 	bool mBypass = false;
 private:
 	int32 getNumberOfChannels();
-	std::vector<CircularAudioBuffer*> _circularAudioBuffers;
-	int32* _delays;
+	Room** _rooms;
 	ByPasser byPasser;
 };
 

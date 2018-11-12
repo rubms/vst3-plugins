@@ -106,18 +106,16 @@ tresult PLUGIN_API PlugProcessor::setActive (TBool state)
 {
 	if (state) // Initialize
 	{
-		_delays = new int32[10];
-		_delays[0] = processSetup.sampleRate * 0.016;
-		_delays[1] = processSetup.sampleRate * 0.032;
-		_delays[2] = processSetup.sampleRate * 0.048;
+		_rooms = NULL;
 	}
 	else // Release
 	{
-		delete[] _delays;
-		while (_circularAudioBuffers.size() > 0) {
-			CircularAudioBuffer* buffer = _circularAudioBuffers.back();
-			delete buffer;
-			_circularAudioBuffers.pop_back();
+		if (_rooms != NULL) {
+			int32 numChannels = getNumberOfChannels();
+			for (int i = 0; i < numChannels; i++)
+				delete _rooms[i];
+			delete _rooms;
+			_rooms = NULL;
 		}
 	}
 	return AudioEffect::setActive (state);
@@ -145,6 +143,13 @@ tresult PLUGIN_API PlugProcessor::process (Vst::ProcessData& data)
 						if (paramQueue->getPoint (numPoints - 1, sampleOffset, value) ==
 						    kResultTrue)
 							mParam1 = value;
+						if (_rooms != NULL) {
+							int32 numChannels = getNumberOfChannels();
+							for (int i = 0; i < numChannels; i++)
+								delete _rooms[i];
+							delete _rooms;
+							_rooms = NULL;
+						}
 						break;
 					case RubenDelayParams::kBypassId:
 						if (paramQueue->getPoint (numPoints - 1, sampleOffset, value) ==
@@ -172,17 +177,10 @@ tresult PLUGIN_API PlugProcessor::process (Vst::ProcessData& data)
 	if (data.numSamples > 0)
 	{
 		int32 numChannels = getNumberOfChannels();
-		if (_circularAudioBuffers.size() == 0) {
-			int32 delayInSamples = std::max<int32>(1, (int32)(0.048 /* delay seconds */ * processSetup.sampleRate));
-
+		if (_rooms == NULL) {
+			_rooms = new Room*[numChannels];
 			for (int i = 0; i < numChannels; i++)
-			{
-				std::cout << "adding circular buffer " << i << std::endl;
-				CircularAudioBuffer* buffer = new CircularAudioBuffer(delayInSamples);
-				buffer->fillWithSilence();
-				_circularAudioBuffers.push_back(buffer);
-				std::cout << "added circular buffer " << i << std::endl;
-			}
+				_rooms[i] = new Room(mParam1, 1-mParam1, processSetup.sampleRate);
 		}
 
 		for (int32 channel = 0; channel < numChannels; channel++)
@@ -192,11 +190,8 @@ tresult PLUGIN_API PlugProcessor::process (Vst::ProcessData& data)
 
 			for (int32 sample = 0; sample < data.numSamples; sample++)
 			{
-				outputChannel[sample] = inputChannel[sample]
-					+ _circularAudioBuffers[channel]->sampleAt(_delays[0]) // 6
-					+ _circularAudioBuffers[channel]->sampleAt(_delays[1]) // 12
-					+ _circularAudioBuffers[channel]->sampleAt(_delays[2]); // 18;
-				_circularAudioBuffers[channel]->push(inputChannel[sample]);
+				_rooms[channel]->pushSample(inputChannel[sample]);
+				outputChannel[sample] = inputChannel[sample] * 0.5 + _rooms[channel]->listenSample() * 0.5;
 			}
 		}
 	}

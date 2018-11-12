@@ -15,7 +15,7 @@ namespace Steinberg {
 				}
 			}
 			else {
-				_audioBuffers = nullptr;
+				_audioBuffers = 0x0;
 			}
 		}
 
@@ -44,7 +44,7 @@ namespace Steinberg {
 			for (int i = 0; i < _numberOfLoops * 2; i++) {
 				result += (i % 2 == 0) ? _audioBuffers[i]->peek() : 0;
 			}
-			return result;
+			return result / _numberOfLoops;
 		}
 	}
 }
