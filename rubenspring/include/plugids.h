@@ -4,7 +4,7 @@
 // Category    : Examples
 // Filename    : plugids.h
 // Created by  : Steinberg, 01/2018
-// Description : HelloWorld Example for VST 3
+// Description : RubenVST3 Example for VST 3
 //
 //-----------------------------------------------------------------------------
 // LICENSE
@@ -37,7 +37,7 @@
 #pragma once
 
 namespace Steinberg {
-namespace HelloWorld {
+namespace RubenVST3 {
 
 // HERE are defined the parameter Ids which are exported to the host
 enum RubenDelayParams : Vst::ParamID
@@ -55,5 +55,5 @@ static const FUID MyProcessorUID (0x60124311, 0xd81a466b, 0x9410fdb6, 0x8f941ed9
 static const FUID MyControllerUID (0x8e1a64e6, 0xa5a14b18, 0xb6383d16, 0x2088aaf2);
 
 //------------------------------------------------------------------------
-} // namespace HelloWorld
+} // namespace RubenVST3
 } // namespace Steinberg

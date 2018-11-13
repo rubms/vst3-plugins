@@ -3,7 +3,7 @@
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
 
 namespace Steinberg {
-	namespace HelloWorld {
+	namespace RubenVST3 {
 		class ByPasser
 		{
 		public:

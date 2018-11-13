@@ -4,7 +4,7 @@
 // Category    : Examples
 // Filename    : plugprocessor.cpp
 // Created by  : Steinberg, 01/2018
-// Description : HelloWorld Example for VST 3
+// Description : RubenVST3 Example for VST 3
 //
 //-----------------------------------------------------------------------------
 // LICENSE
@@ -47,7 +47,7 @@
 #include <iostream>
 
 namespace Steinberg {
-namespace HelloWorld {
+namespace RubenVST3 {
 
 //-----------------------------------------------------------------------------
 PlugProcessor::PlugProcessor ()
@@ -189,7 +189,7 @@ tresult PLUGIN_API PlugProcessor::process (Vst::ProcessData& data)
 		if (_springs.size() == 0) {
 			for (int i = 0; i < numChannels; i++)
 			{
-				_springs.push_back(new Spring(mLoops, mSizeSeg, mDecay, processSetup.sampleRate));
+				_springs.push_back(new Spring(mSizeSeg, mDecay, processSetup.sampleRate));
 			}
 		}
 
@@ -201,7 +201,7 @@ tresult PLUGIN_API PlugProcessor::process (Vst::ProcessData& data)
 			for (int32 sample = 0; sample < data.numSamples; sample++)
 			{
 				_springs[channel]->push(inputChannel[sample]);
-				outputChannel[sample] = _springs[channel]->peek() * 0.5 + inputChannel[sample] * 0.5;
+				outputChannel[sample] = _springs[channel]->peek() + inputChannel[sample];
 			}
 		}
 	}

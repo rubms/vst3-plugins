@@ -4,7 +4,7 @@
 // Category    : Examples
 // Filename    : plugprocessor.cpp
 // Created by  : Steinberg, 01/2018
-// Description : HelloWorld Example for VST 3
+// Description : RubenVST3 Example for VST 3
 //
 //-----------------------------------------------------------------------------
 // LICENSE
@@ -47,7 +47,7 @@
 #include <iostream>
 
 namespace Steinberg {
-namespace HelloWorld {
+namespace RubenVST3 {
 
 //-----------------------------------------------------------------------------
 PlugProcessor::PlugProcessor ()

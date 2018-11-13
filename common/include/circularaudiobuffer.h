@@ -1,7 +1,7 @@
 #pragma once
 
 namespace Steinberg {
-	namespace HelloWorld {
+	namespace RubenVST3 {
 		class CircularAudioBuffer
 		{
 		public:

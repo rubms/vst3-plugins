@@ -4,7 +4,7 @@
 // Category    : Examples
 // Filename    : plugprocessor.cpp
 // Created by  : Steinberg, 01/2018
-// Description : HelloWorld Example for VST 3
+// Description : RubenVST3 Example for VST 3
 //
 //-----------------------------------------------------------------------------
 // LICENSE
@@ -47,7 +47,7 @@
 #include <iostream>
 
 namespace Steinberg {
-namespace HelloWorld {
+namespace RubenVST3 {
 
 //-----------------------------------------------------------------------------
 PlugProcessor::PlugProcessor ()
@@ -139,16 +139,16 @@ tresult PLUGIN_API PlugProcessor::process (Vst::ProcessData& data)
 				int32 numPoints = paramQueue->getPointCount ();
 				switch (paramQueue->getParameterId ())
 				{
-					case RubenDelayParams::kParamVolId:
-						if (paramQueue->getPoint (numPoints - 1, sampleOffset, value) ==
-						    kResultTrue)
-							mParam1 = value;
-						if (_rooms != NULL) {
-							int32 numChannels = getNumberOfChannels();
-							for (int i = 0; i < numChannels; i++)
-								delete _rooms[i];
-							delete _rooms;
-							_rooms = NULL;
+					case RubenDelayParams::kDecay:
+						if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
+							mDecay = value;
+							destroyRooms();
+						}
+						break;
+					case RubenDelayParams::kRoomSize:
+						if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
+							mRoomSize = value;
+							destroyRooms();
 						}
 						break;
 					case RubenDelayParams::kBypassId:
@@ -180,7 +180,7 @@ tresult PLUGIN_API PlugProcessor::process (Vst::ProcessData& data)
 		if (_rooms == NULL) {
 			_rooms = new Room*[numChannels];
 			for (int i = 0; i < numChannels; i++)
-				_rooms[i] = new Room(mParam1, 1-mParam1, processSetup.sampleRate);
+				_rooms[i] = new Room(mRoomSize, mDecay, processSetup.sampleRate);
 		}
 
 		for (int32 channel = 0; channel < numChannels; channel++)
@@ -190,12 +190,22 @@ tresult PLUGIN_API PlugProcessor::process (Vst::ProcessData& data)
 
 			for (int32 sample = 0; sample < data.numSamples; sample++)
 			{
-				_rooms[channel]->pushSample(inputChannel[sample]);
-				outputChannel[sample] = inputChannel[sample] * 0.5 + _rooms[channel]->listenSample() * 0.5;
+				_rooms[channel]->feedWithHadamardFeedbackMatrix(inputChannel[sample]);
+				outputChannel[sample] = inputChannel[sample] + _rooms[channel]->listenSample();
 			}
 		}
 	}
 	return kResultOk;
+}
+
+void PlugProcessor::destroyRooms() {
+	if (_rooms != NULL) {
+		int32 numChannels = getNumberOfChannels();
+		for (int i = 0; i < numChannels; i++)
+			delete _rooms[i];
+		delete _rooms;
+		_rooms = NULL;
+	}
 }
 
 //------------------------------------------------------------------------
@@ -208,15 +218,20 @@ tresult PLUGIN_API PlugProcessor::setState (IBStream* state)
 
 	IBStreamer streamer (state, kLittleEndian);
 
-	float savedParam1 = 0.f;
-	if (streamer.readFloat (savedParam1) == false)
+	float savedDecay = 0.f;
+	if (streamer.readFloat (savedDecay) == false)
+		return kResultFalse;
+
+	float savedRoomSize = 0.f;
+	if (streamer.readFloat(savedRoomSize) == false)
 		return kResultFalse;
 
 	int32 savedBypass = 0;
 	if (streamer.readInt32 (savedBypass) == false)
 		return kResultFalse;
 
-	mParam1 = savedParam1;
+	mDecay = savedDecay;
+	mRoomSize = savedRoomSize;
 	mBypass = savedBypass > 0;
 
 	return kResultOk;
@@ -227,11 +242,11 @@ tresult PLUGIN_API PlugProcessor::getState (IBStream* state)
 {
 	// here we need to save the model (preset or project)
 
-	float toSaveParam1 = mParam1;
 	int32 toSaveBypass = mBypass ? 1 : 0;
 
 	IBStreamer streamer (state, kLittleEndian);
-	streamer.writeFloat (toSaveParam1);
+	streamer.writeFloat (mDecay);
+	streamer.writeFloat(mRoomSize);
 	streamer.writeInt32 (toSaveBypass);
 
 	return kResultOk;

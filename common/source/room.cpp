@@ -3,39 +3,48 @@
 #include <algorithm>
 
 namespace Steinberg {
-	namespace HelloWorld {
+	namespace RubenVST3 {
 		Room::Room(float size, float decay, int sampleRate) {
-
 			_size = std::max<float>(size, 0.01);
 			_sampleRate = sampleRate;
 			_decay = decay;
-			_audioBuffers = new CircularAudioBuffer*[6];
 
-			_audioBuffers[0] = new CircularAudioBuffer(sampleRate * 0.0101);
-			_audioBuffers[1] = new CircularAudioBuffer(sampleRate * 0.0117);
-			_audioBuffers[2] = new CircularAudioBuffer(sampleRate * 0.015);
-			_audioBuffers[3] = new CircularAudioBuffer(sampleRate * 0.019);
-			_audioBuffers[4] = new CircularAudioBuffer(sampleRate * 0.021);
-			_audioBuffers[5] = new CircularAudioBuffer(sampleRate * 0.023);
+			_numBuffers = 4;
+			_audioBuffers = new CircularAudioBuffer*[_numBuffers];
+			float reflections[4] = { 0.002, 0.003, 0.005, 0.007 /*, 0.0101, 0.0117, 0.015, 0.019, 0.024, 0.028*/ };
+			for (int i = 0; i < _numBuffers; i++) {
+				_audioBuffers[i] = new CircularAudioBuffer(sampleRate * reflections[i] * _size * 10);
+				_audioBuffers[i]->fillWithSilence();
+			}
 		}
 
 		Room::~Room() {
-			for (int i = 0; i < 6; i++) {
+			for (int i = 0; i < _numBuffers; i++) {
 				delete _audioBuffers[i];
 			}
 			delete[] _audioBuffers;
 		}
 
-		void Room::pushSample(float sample) {
-			_audioBuffer.push(sample);
+		void Room::feedWithHadamardFeedbackMatrix(float sample) {
+			float feedback1 = _audioBuffers[0]->peek() + _audioBuffers[1]->peek() + _audioBuffers[2]->peek() + _audioBuffers[3]->peek();
+			float feedback2 = _audioBuffers[0]->peek() - _audioBuffers[1]->peek() + _audioBuffers[2]->peek() - _audioBuffers[3]->peek();
+			float feedback3 = _audioBuffers[0]->peek() + _audioBuffers[1]->peek() - _audioBuffers[2]->peek() - _audioBuffers[3]->peek();
+			float feedback4 = _audioBuffers[0]->peek() - _audioBuffers[1]->peek() - _audioBuffers[2]->peek() + _audioBuffers[3]->peek();
+
+			_audioBuffers[0]->push((sample + feedback1) * (1 - _decay));
+			_audioBuffers[1]->push((sample + feedback2) * (1 - _decay));
+			_audioBuffers[2]->push((sample + feedback3) * (1 - _decay));
+			_audioBuffers[3]->push((sample + feedback4) * (1 - _decay));
 		}
 
 		float Room::listenSample() {
-			float result = 0;
-			for (int i = 0; i < 10; i++) {
-				result += _reflections[i]->listen();
+			float reflectionSum = 0;
+
+			for (int i = 0; i < _numBuffers; i++) {
+				reflectionSum += _audioBuffers[i]->peek();
 			}
-			return result;
+
+			return reflectionSum;
 		}
 	}
 }

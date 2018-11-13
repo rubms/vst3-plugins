@@ -4,7 +4,7 @@
 // Category    : Examples
 // Filename    : plugprocessor.h
 // Created by  : Steinberg, 01/2018
-// Description : HelloWorld Example for VST 3
+// Description : RubenVST3 Example for VST 3
 //
 //-----------------------------------------------------------------------------
 // LICENSE
@@ -41,7 +41,7 @@
 #include "../../common/include/spring.h"
 
 namespace Steinberg {
-namespace HelloWorld {
+namespace RubenVST3 {
 
 //-----------------------------------------------------------------------------
 class PlugProcessor : public Vst::AudioEffect

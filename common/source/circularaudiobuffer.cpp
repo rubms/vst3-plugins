@@ -1,7 +1,7 @@
 #include "../include/circularaudiobuffer.h"
 
 namespace Steinberg {
-	namespace HelloWorld {
+	namespace RubenVST3 {
 		CircularAudioBuffer::CircularAudioBuffer(int sizeInSamples) {
 			_capacity = sizeInSamples;
 			_buffer = new float[sizeInSamples];

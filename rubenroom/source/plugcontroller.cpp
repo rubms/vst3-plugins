@@ -4,7 +4,7 @@
 // Category    : Examples
 // Filename    : plugcontroller.cpp
 // Created by  : Steinberg, 01/2018
-// Description : HelloWorld Example for VST 3
+// Description : RubenVST3 Example for VST 3
 //
 //-----------------------------------------------------------------------------
 // LICENSE
@@ -41,7 +41,7 @@
 #include "pluginterfaces/base/ibstream.h"
 
 namespace Steinberg {
-namespace HelloWorld {
+namespace RubenVST3 {
 
 //-----------------------------------------------------------------------------
 tresult PLUGIN_API PlugController::initialize (FUnknown* context)
@@ -54,9 +54,13 @@ tresult PLUGIN_API PlugController::initialize (FUnknown* context)
 		                         Vst::ParameterInfo::kCanAutomate | Vst::ParameterInfo::kIsBypass,
 		                         RubenDelayParams::kBypassId);
 
-		parameters.addParameter (STR16 ("Parameter 1"), STR16 ("dB"), 0, .5,
-		                         Vst::ParameterInfo::kCanAutomate, RubenDelayParams::kParamVolId, 0,
-		                         STR16 ("Param1"));
+		parameters.addParameter (STR16 ("Decay"), 0, 0, .5,
+		                         Vst::ParameterInfo::kCanAutomate, RubenDelayParams::kDecay, 0,
+		                         0);
+
+		parameters.addParameter(STR16("Room Size"), 0, 0, .5,
+			Vst::ParameterInfo::kCanAutomate, RubenDelayParams::kRoomSize, 0,
+			0);
 	}
 	return kResultTrue;
 }
@@ -71,10 +75,15 @@ tresult PLUGIN_API PlugController::setComponentState (IBStream* state)
 
 	IBStreamer streamer (state, kLittleEndian);
 
-	float savedParam1 = 0.f;
-	if (streamer.readFloat (savedParam1) == false)
+	float savedDecay = 0.f;
+	if (streamer.readFloat (savedDecay) == false)
 		return kResultFalse;
-	setParamNormalized (RubenDelayParams::kParamVolId, savedParam1);
+	setParamNormalized (RubenDelayParams::kDecay, savedDecay);
+
+	float savedRoomSize = 0.f;
+	if (streamer.readFloat(savedRoomSize) == false)
+		return kResultFalse;
+	setParamNormalized(RubenDelayParams::kRoomSize, savedRoomSize);
 
 	// read the bypass
 	int32 bypassState;

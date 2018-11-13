@@ -1,7 +1,7 @@
 #include "../include/bypasser.h"
 
 namespace Steinberg {
-	namespace HelloWorld {
+	namespace RubenVST3 {
 		void ByPasser::byPass(Vst::ProcessData & data, int32 numberOfChannels) {
 			if (data.numSamples > 0)
 			{

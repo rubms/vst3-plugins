@@ -3,18 +3,17 @@
 #include "circularaudiobuffer.h"
 
 namespace Steinberg {
-	namespace HelloWorld {
+	namespace RubenVST3 {
 		class Spring
 		{
 		public:
-			Spring(int loops, float springDelaySeconds, float decay, int sampleRate);
-			~Spring();
+			Spring(float springDelaySeconds, float decay, int sampleRate);
 
 			void push(float sample);
 			float peek();
 		private:
-			CircularAudioBuffer** _audioBuffers;
-			int _numberOfLoops;
+			CircularAudioBuffer _springForthTripBuffer;
+			CircularAudioBuffer _springBackTripBuffer;
 			float _decay;
 		};
 	}

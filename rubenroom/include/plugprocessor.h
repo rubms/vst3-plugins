@@ -4,7 +4,7 @@
 // Category    : Examples
 // Filename    : plugprocessor.h
 // Created by  : Steinberg, 01/2018
-// Description : HelloWorld Example for VST 3
+// Description : RubenVST3 Example for VST 3
 //
 //-----------------------------------------------------------------------------
 // LICENSE
@@ -41,7 +41,7 @@
 #include "../../common/include/bypasser.h"
 
 namespace Steinberg {
-namespace HelloWorld {
+namespace RubenVST3 {
 
 //-----------------------------------------------------------------------------
 class PlugProcessor : public Vst::AudioEffect
@@ -67,12 +67,14 @@ public:
 	}
 
 protected:
-	Vst::ParamValue mParam1 = 0.5;
+	Vst::ParamValue mDecay = 0.9;
+	Vst::ParamValue mRoomSize = 0.9;
 	bool mBypass = false;
 private:
 	int32 getNumberOfChannels();
 	Room** _rooms;
 	ByPasser byPasser;
+	void destroyRooms();
 };
 
 //------------------------------------------------------------------------

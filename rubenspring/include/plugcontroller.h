@@ -4,7 +4,7 @@
 // Category    : Examples
 // Filename    : plugcontroller.h
 // Created by  : Steinberg, 01/2018
-// Description : HelloWorld Example for VST 3
+// Description : RubenVST3 Example for VST 3
 //
 //-----------------------------------------------------------------------------
 // LICENSE
@@ -39,7 +39,7 @@
 #include "public.sdk/source/vst/vsteditcontroller.h"
 
 namespace Steinberg {
-namespace HelloWorld {
+namespace RubenVST3 {
 
 //-----------------------------------------------------------------------------
 class PlugController : public Vst::EditController
