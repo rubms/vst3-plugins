@@ -1,21 +1,35 @@
 #include "../include/room.h"
 #include <cstdlib>
 #include <algorithm>
+#include <cmath>
 
 namespace Steinberg {
 	namespace RubenVST3 {
-		Room::Room(float size, float decay, int sampleRate) {
-			_size = std::max<float>(size, 0.01);
+		Room::Room(int sampleRate,
+				float damping,
+				float roomSize,
+				float reverbTime,
+				float earlyReflectionsLevel,
+				float tailReflectionsLevel,
+				float inputBandWith) : _inputDamper(1.0 - inputBandWith) {
+			
 			_sampleRate = sampleRate;
-			_decay = decay;
+			_damping = damping;
+			_roomSize = roomSize;
+			_reverbTime = reverbTime;
+			_earlyReflectionsLevel = earlyReflectionsLevel;
+			_tailReflectionsLevel = tailReflectionsLevel;
+			_inputBandWith = inputBandWith;
 
-			_numBuffers = 4;
-			_audioBuffers = new CircularAudioBuffer*[_numBuffers];
-			float reflections[4] = { 0.002, 0.003, 0.005, 0.007 /*, 0.0101, 0.0117, 0.015, 0.019, 0.024, 0.028*/ };
-			for (int i = 0; i < _numBuffers; i++) {
-				_audioBuffers[i] = new CircularAudioBuffer(sampleRate * reflections[i] * _size * 10);
-				_audioBuffers[i]->fillWithSilence();
-			}
+			_largestDelay = _sampleRate * _roomSize / SPEED_OF_SOUND;
+
+			float alpha = 0.0f;
+
+			_fixedDelays = new FDNDelay*[NUMBER_OF_FDN_DELAYS];
+			_fixedDelays[0] = new FDNDelay((int) round(1.000000 * _largestDelay), alpha, 
+			for (int i = 0; i < NUMBER_OF_FDN_DELAYS; i++)
+				_fixedDelays[i] = new CircularAudioBuffer(_maxDelay + 1000);
+
 		}
 
 		Room::~Room() {
