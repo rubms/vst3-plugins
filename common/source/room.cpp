@@ -23,20 +23,18 @@ namespace Steinberg {
 
 			_largestDelay = _sampleRate * _roomSize / SPEED_OF_SOUND;
 
-			float alpha = 0.0f;
-
 			_fixedDelays = new FDNDelay*[NUMBER_OF_FDN_DELAYS];
-			_fixedDelays[0] = new FDNDelay((int) round(1.000000 * _largestDelay), alpha, 
-			for (int i = 0; i < NUMBER_OF_FDN_DELAYS; i++)
-				_fixedDelays[i] = new CircularAudioBuffer(_maxDelay + 1000);
-
+			_fixedDelays[0] = new FDNDelay((int)round(1.000000 * _largestDelay), reverbTime, damping);
+			_fixedDelays[1] = new FDNDelay((int)round(0.816490 * _largestDelay), reverbTime, damping);
+			_fixedDelays[2] = new FDNDelay((int)round(0.707100 * _largestDelay), reverbTime, damping);
+			_fixedDelays[3] = new FDNDelay((int)round(0.632450 * _largestDelay), reverbTime, damping);
 		}
 
 		Room::~Room() {
-			for (int i = 0; i < _numBuffers; i++) {
-				delete _audioBuffers[i];
+			for (int i = 0; i < NUMBER_OF_FDN_DELAYS; i++) {
+				delete _fixedDelays[i];
 			}
-			delete[] _audioBuffers;
+			delete[] _fixedDelays;
 		}
 
 		void Room::feedWithHadamardFeedbackMatrix(float sample) {

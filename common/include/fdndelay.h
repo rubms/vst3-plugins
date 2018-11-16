@@ -8,7 +8,7 @@ namespace Steinberg {
 		class FDNDelay
 		{
 		public:
-			FDNDelay(int size, float gain, float damping);
+			FDNDelay(int size, float gain, float damping, int samplingRate);
 			void feed(float sample);
 			float pop();
 			float peek();
