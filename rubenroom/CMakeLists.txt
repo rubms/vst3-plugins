@@ -9,7 +9,8 @@ set(plug_sources
 	../common/include/room.h
 	../common/include/damper.h
 	../common/include/diffuser.h
-	../common/include/fdndelay.h
+	../common/include/delay.h
+	../common/include/dampeddelay.h
     source/plugfactory.cpp
     source/plugcontroller.cpp
     source/plugprocessor.cpp
@@ -18,7 +19,8 @@ set(plug_sources
 	../common/source/room.cpp
 	../common/source/damper.cpp
 	../common/source/diffuser.cpp
-	../common/source/fdndelay.cpp
+	../common/source/delay.cpp
+	../common/source/dampeddelay.cpp
 )
 
 #--- HERE change the target Name for your plug-in (for ex. set(target myDelay))-------

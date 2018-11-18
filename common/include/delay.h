@@ -5,18 +5,17 @@
 
 namespace Steinberg {
 	namespace RubenVST3 {
-		class FDNDelay
+		class Delay
 		{
 		public:
-			FDNDelay(int size, float gain, float damping, int samplingRate);
+			Delay(int size, float reverbTime, int samplingRate);
 			void feed(float sample);
-			float pop();
-			float peek();
-			void flush();
+			virtual float pop();
+			virtual float peek();
+			virtual void flush();
 		private:
 			float _gain;
 			CircularAudioBuffer _audioBuffer;
-			Damper _damper;
 		};
 	}
 }

@@ -1,7 +1,8 @@
 #pragma once
 
-#include "fdndelay.h"
+#include "dampeddelay.h"
 #include "damper.h"
+#include "diffuser.h"
 
 #define SPEED_OF_SOUND 343.2f
 #define NUMBER_OF_FDN_DELAYS 4
@@ -11,28 +12,31 @@ namespace Steinberg {
 		class Room
 		{
 		public:
-			Room(int sampleRate,
+			Room(int samplingRate,
 				float damping,
 				float roomSize,
 				float reverbTime,
 				float earlyReflectionsLevel,
 				float tailReflectionsLevel,
-				float inputBandWith);
+				float inputBandWith,
+				float spread);
 			~Room();
 
-			void feedWithHadamardFeedbackMatrix(float sample);
+			void feed(float sample);
 			float listenSample();
 		private:
-			FDNDelay** _fixedDelays;
-			int _sampleRate;
+			int _samplingRate;
 			float _damping;
 			float _roomSize;
 			float _reverbTime;
-			float _earlyReflectionsLevel;
-			float _tailReflectionsLevel;
+			float _earlyLevel;
+			float _tailLevel;
 			float _largestDelay;
-			float _inputBandWith;
 			Damper _inputDamper;
+			DampedDelay** _fixedDelays;
+			Delay** _tapDelays;
+			Diffuser* _inputDiffuser;
+			Diffuser** _outputSerialDiffusers;
 			int hadamardMatrix[4][4] = {{1, 1, 1, 1}, {1, -1, 1, -1}, {1, 1, -1, -1}, {1, -1, -1, 1} };
 		};
 	}
