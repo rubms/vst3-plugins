@@ -189,7 +189,7 @@ tresult PLUGIN_API PlugProcessor::process (Vst::ProcessData& data)
 		if (_springs.size() == 0) {
 			for (int i = 0; i < numChannels; i++)
 			{
-				_springs.push_back(new Spring(mSizeSeg, mDecay, processSetup.sampleRate));
+				_springs.push_back(new Spring(mSizeSeg, mLoops, processSetup.sampleRate, mDecay));
 			}
 		}
 

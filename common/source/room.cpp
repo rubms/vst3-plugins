@@ -91,6 +91,7 @@ namespace Steinberg {
 				output += sign * (_tailLevel * fixedDelayOutputs[i] + _earlyLevel * tapDelayOutputs[i]);
 				sign = -sign;
 			}
+			output *=2;
 			output += inputSample * _earlyLevel;
 
 			processHadamardMatrix(fixedDelayOutputs);

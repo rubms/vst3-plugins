@@ -1,20 +1,23 @@
 #pragma once
 
-#include "circularaudiobuffer.h"
+#include "dampeddelay.h"
+#include "diffuser.h"
 
 namespace Steinberg {
 	namespace RubenVST3 {
 		class Spring
 		{
 		public:
-			Spring(float springDelaySeconds, float decay, int sampleRate);
+			Spring(float springDelaySeconds, float reverbTime, int sampleRate, float damping);
+			~Spring();
 
 			void push(float sample);
 			float peek();
 		private:
-			CircularAudioBuffer _springForthTripBuffer;
-			CircularAudioBuffer _springBackTripBuffer;
-			float _decay;
+			Diffuser* _inputDiffuser;
+			DampedDelay _springForthTripDelay;
+			DampedDelay _springBackTripDelay;
+			Diffuser** _outputDiffusers;
 		};
 	}
 }

@@ -7,12 +7,20 @@ set(plug_sources
 	../common/include/circularaudiobuffer.h
 	../common/include/spring.h
 	../common/include/bypasser.h
+	../common/include/damper.h
+	../common/include/diffuser.h
+	../common/include/delay.h
+	../common/include/dampeddelay.h
     source/plugfactory.cpp
     source/plugcontroller.cpp
     source/plugprocessor.cpp
 	../common/source/circularaudiobuffer.cpp
 	../common/source/spring.cpp
 	../common/source/bypasser.cpp
+	../common/source/damper.cpp
+	../common/source/diffuser.cpp
+	../common/source/delay.cpp
+	../common/source/dampeddelay.cpp
 )
 
 #--- HERE change the target Name for your plug-in (for ex. set(target myDelay))-------
