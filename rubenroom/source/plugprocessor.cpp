@@ -128,6 +128,9 @@ tresult PLUGIN_API PlugProcessor::process (Vst::ProcessData& data)
 	if (data.inputParameterChanges)
 	{
 		int32 numParamsChanged = data.inputParameterChanges->getParameterCount ();
+		if (numParamsChanged > 0)
+			destroyRooms();
+
 		for (int32 index = 0; index < numParamsChanged; index++)
 		{
 			Vst::IParamValueQueue* paramQueue =
@@ -139,17 +142,29 @@ tresult PLUGIN_API PlugProcessor::process (Vst::ProcessData& data)
 				int32 numPoints = paramQueue->getPointCount ();
 				switch (paramQueue->getParameterId ())
 				{
-					case RubenDelayParams::kDecay:
-						if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-							mDecay = value;
-							destroyRooms();
-						}
+					case RubenDelayParams::kDamping:
+						if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) 
+							mDamping = value;
 						break;
-					case RubenDelayParams::kRoomSize:
-						if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) {
-							mRoomSize = value;
-							destroyRooms();
-						}
+					case RubenDelayParams::kReverbTimeSeconds:
+						if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
+							mReverbTimeSeconds = value * 10;
+						break;
+					case RubenDelayParams::kRoomSizeMeters:
+						if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue) 
+							mRoomSizeMeters = value * 10;
+						break;
+					case RubenDelayParams::kEarlyLevel:
+						if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
+							mEarlyLevel = value;
+						break;
+					case RubenDelayParams::kTailLevel:
+						if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
+							mTailLevel = value;
+						break;
+					case RubenDelayParams::kSpread:
+						if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
+							mSpread = value * 10;
 						break;
 					case RubenDelayParams::kBypassId:
 						if (paramQueue->getPoint (numPoints - 1, sampleOffset, value) ==
@@ -180,7 +195,7 @@ tresult PLUGIN_API PlugProcessor::process (Vst::ProcessData& data)
 		if (_rooms == NULL) {
 			_rooms = new Room*[numChannels];
 			for (int i = 0; i < numChannels; i++)
-				_rooms[i] = new Room(mRoomSize, mDecay, processSetup.sampleRate);
+				_rooms[i] = new Room(processSetup.sampleRate, mDamping, mRoomSizeMeters, mReverbTimeSeconds, mEarlyLevel, mTailLevel, mSpread);
 		}
 
 		for (int32 channel = 0; channel < numChannels; channel++)
@@ -189,10 +204,7 @@ tresult PLUGIN_API PlugProcessor::process (Vst::ProcessData& data)
 			float* outputChannel = data.outputs[0].channelBuffers32[channel];
 
 			for (int32 sample = 0; sample < data.numSamples; sample++)
-			{
-				_rooms[channel]->feedWithHadamardFeedbackMatrix(inputChannel[sample]);
-				outputChannel[sample] = inputChannel[sample] + _rooms[channel]->listenSample();
-			}
+				outputChannel[sample] = _rooms[channel]->process(inputChannel[sample]);
 		}
 	}
 	return kResultOk;
@@ -218,20 +230,34 @@ tresult PLUGIN_API PlugProcessor::setState (IBStream* state)
 
 	IBStreamer streamer (state, kLittleEndian);
 
-	float savedDecay = 0.f;
-	if (streamer.readFloat (savedDecay) == false)
+	float savedFloat = 0.f;
+	if (streamer.readFloat (savedFloat) == false)
 		return kResultFalse;
+	mDamping = savedFloat;
 
-	float savedRoomSize = 0.f;
-	if (streamer.readFloat(savedRoomSize) == false)
+	if (streamer.readFloat(savedFloat) == false)
 		return kResultFalse;
+	mReverbTimeSeconds = savedFloat * 10;
+
+	if (streamer.readFloat(savedFloat) == false)
+		return kResultFalse;
+	mRoomSizeMeters = savedFloat * 10;
+
+	if (streamer.readFloat(savedFloat) == false)
+		return kResultFalse;
+	mEarlyLevel = savedFloat;
+
+	if (streamer.readFloat(savedFloat) == false)
+		return kResultFalse;
+	mTailLevel = savedFloat;
+
+	if (streamer.readFloat(savedFloat) == false)
+		return kResultFalse;
+	mSpread = savedFloat;
 
 	int32 savedBypass = 0;
 	if (streamer.readInt32 (savedBypass) == false)
 		return kResultFalse;
-
-	mDecay = savedDecay;
-	mRoomSize = savedRoomSize;
 	mBypass = savedBypass > 0;
 
 	return kResultOk;
@@ -241,13 +267,14 @@ tresult PLUGIN_API PlugProcessor::setState (IBStream* state)
 tresult PLUGIN_API PlugProcessor::getState (IBStream* state)
 {
 	// here we need to save the model (preset or project)
-
-	int32 toSaveBypass = mBypass ? 1 : 0;
-
 	IBStreamer streamer (state, kLittleEndian);
-	streamer.writeFloat (mDecay);
-	streamer.writeFloat(mRoomSize);
-	streamer.writeInt32 (toSaveBypass);
+	streamer.writeFloat (mDamping);
+	streamer.writeFloat(mReverbTimeSeconds);
+	streamer.writeFloat(mRoomSizeMeters);
+	streamer.writeFloat(mEarlyLevel);
+	streamer.writeFloat(mTailLevel);
+	streamer.writeFloat(mSpread);
+	streamer.writeInt32 (mBypass ? 1 : 0);
 
 	return kResultOk;
 }

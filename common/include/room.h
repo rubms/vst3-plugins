@@ -14,16 +14,14 @@ namespace Steinberg {
 		public:
 			Room(int samplingRate,
 				float damping,
-				float roomSize,
-				float reverbTime,
+				float roomSizeMeters,
+				float reverbTimeSeconds,
 				float earlyReflectionsLevel,
 				float tailReflectionsLevel,
-				float inputBandWith,
 				float spread);
 			~Room();
 
-			void feed(float sample);
-			float listenSample();
+			float process(float sample);
 		private:
 			int _samplingRate;
 			float _damping;
@@ -37,7 +35,7 @@ namespace Steinberg {
 			Delay** _tapDelays;
 			Diffuser* _inputDiffuser;
 			Diffuser** _outputSerialDiffusers;
-			int hadamardMatrix[4][4] = {{1, 1, 1, 1}, {1, -1, 1, -1}, {1, 1, -1, -1}, {1, -1, -1, 1} };
+			void processHadamardMatrix(float* values);
 		};
 	}
 }

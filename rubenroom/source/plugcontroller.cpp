@@ -50,16 +50,32 @@ tresult PLUGIN_API PlugController::initialize (FUnknown* context)
 	if (result == kResultTrue)
 	{
 		//---Create Parameters------------
-		parameters.addParameter (STR16 ("Bypass"), 0, 1, 0,
-		                         Vst::ParameterInfo::kCanAutomate | Vst::ParameterInfo::kIsBypass,
-		                         RubenDelayParams::kBypassId);
+		parameters.addParameter(STR16("Bypass"), 0, 1, 0,
+			Vst::ParameterInfo::kCanAutomate | Vst::ParameterInfo::kIsBypass,
+			RubenDelayParams::kBypassId);
 
-		parameters.addParameter (STR16 ("Decay"), 0, 0, .5,
-		                         Vst::ParameterInfo::kCanAutomate, RubenDelayParams::kDecay, 0,
-		                         0);
+		parameters.addParameter(STR16("Damping"), 0, 0, .5,
+			Vst::ParameterInfo::kCanAutomate, RubenDelayParams::kDamping, 0,
+			0);
 
-		parameters.addParameter(STR16("Room Size"), 0, 0, .5,
-			Vst::ParameterInfo::kCanAutomate, RubenDelayParams::kRoomSize, 0,
+		parameters.addParameter(STR16("Room Size"), STR16("meters"), 0, .5,
+			Vst::ParameterInfo::kCanAutomate, RubenDelayParams::kRoomSizeMeters, 0,
+			0);
+
+		parameters.addParameter(STR16("Reverb Time"), STR16("seconds"), 0, .5,
+			Vst::ParameterInfo::kCanAutomate, RubenDelayParams::kReverbTimeSeconds, 0,
+			0);
+
+		parameters.addParameter(STR16("Early Level"), 0, 0, .5,
+			Vst::ParameterInfo::kCanAutomate, RubenDelayParams::kEarlyLevel, 0,
+			0);
+
+		parameters.addParameter(STR16("Tail Level"), 0, 0, .5,
+			Vst::ParameterInfo::kCanAutomate, RubenDelayParams::kTailLevel, 0,
+			0);
+
+		parameters.addParameter(STR16("Spread"), 0, 0, .5,
+			Vst::ParameterInfo::kCanAutomate, RubenDelayParams::kSpread, 0,
 			0);
 	}
 	return kResultTrue;
@@ -75,15 +91,35 @@ tresult PLUGIN_API PlugController::setComponentState (IBStream* state)
 
 	IBStreamer streamer (state, kLittleEndian);
 
-	float savedDecay = 0.f;
-	if (streamer.readFloat (savedDecay) == false)
+	float savedValue = 0.f;
+	if (streamer.readFloat (savedValue) == false)
 		return kResultFalse;
-	setParamNormalized (RubenDelayParams::kDecay, savedDecay);
+	setParamNormalized (RubenDelayParams::kDamping, savedValue);
 
-	float savedRoomSize = 0.f;
-	if (streamer.readFloat(savedRoomSize) == false)
+	savedValue = 0.f;
+	if (streamer.readFloat(savedValue) == false)
 		return kResultFalse;
-	setParamNormalized(RubenDelayParams::kRoomSize, savedRoomSize);
+	setParamNormalized(RubenDelayParams::kReverbTimeSeconds, savedValue * 10);
+
+	savedValue = 0.f;
+	if (streamer.readFloat(savedValue) == false)
+		return kResultFalse;
+	setParamNormalized(RubenDelayParams::kRoomSizeMeters, savedValue * 10);
+
+	savedValue = 0.f;
+	if (streamer.readFloat(savedValue) == false)
+		return kResultFalse;
+	setParamNormalized(RubenDelayParams::kEarlyLevel, savedValue);
+
+	savedValue = 0.f;
+	if (streamer.readFloat(savedValue) == false)
+		return kResultFalse;
+	setParamNormalized(RubenDelayParams::kTailLevel, savedValue);
+
+	savedValue = 0.f;
+	if (streamer.readFloat(savedValue) == false)
+		return kResultFalse;
+	setParamNormalized(RubenDelayParams::kSpread, savedValue);
 
 	// read the bypass
 	int32 bypassState;

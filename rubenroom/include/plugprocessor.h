@@ -67,8 +67,12 @@ public:
 	}
 
 protected:
-	Vst::ParamValue mDecay = 0.9;
-	Vst::ParamValue mRoomSize = 0.9;
+	Vst::ParamValue mDamping = 0.9;
+	Vst::ParamValue mRoomSizeMeters = 3;
+	Vst::ParamValue mReverbTimeSeconds = 1.5;
+	Vst::ParamValue mEarlyLevel = 0.8;
+	Vst::ParamValue mTailLevel = 0.8;
+	Vst::ParamValue mSpread = 0.2;
 	bool mBypass = false;
 private:
 	int32 getNumberOfChannels();

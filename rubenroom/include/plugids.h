@@ -43,8 +43,12 @@ namespace RubenVST3 {
 enum RubenDelayParams : Vst::ParamID
 {
 	kBypassId = 100,
-	kDecay = 102,
-	kRoomSize = 103
+	kDamping = 102,
+	kRoomSizeMeters = 103,
+	kReverbTimeSeconds = 104,
+	kEarlyLevel = 105,
+	kTailLevel = 106,
+	kSpread = 107
 };
 
 

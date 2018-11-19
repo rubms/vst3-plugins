@@ -5,30 +5,31 @@
 
 namespace Steinberg {
 	namespace RubenVST3 {
+		/**
+		 * 
+		 */
 		Room::Room(int samplingRate,
 				float damping,
-				float roomSize,
-				float reverbTime,
+				float roomSizeMeters,
+				float reverbTimeSeconds,
 				float earlyLevel,
 				float tailLevel,
-				float inputBandWith,
 				float spread) : 
-			_inputDamper(1.0 - inputBandWith)
+			_inputDamper(damping)
 		{
 			_samplingRate = samplingRate;
 			_damping = damping;
-			_roomSize = roomSize;
-			_reverbTime = reverbTime;
+			_roomSize = roomSizeMeters;
+			_reverbTime = reverbTimeSeconds;
 			_earlyLevel = earlyLevel;
 			_tailLevel = tailLevel;
 
 			_largestDelay = _samplingRate * _roomSize / SPEED_OF_SOUND;
 
+			float fixedDelayTimes[NUMBER_OF_FDN_DELAYS] = { 1.000000 , 0.816490, 0.707100, 0.632450 };
 			_fixedDelays = new DampedDelay*[NUMBER_OF_FDN_DELAYS];
-			_fixedDelays[0] = new DampedDelay((int)round(1.000000 * _largestDelay), reverbTime, damping, samplingRate);
-			_fixedDelays[1] = new DampedDelay((int)round(0.816490 * _largestDelay), reverbTime, damping, samplingRate);
-			_fixedDelays[2] = new DampedDelay((int)round(0.707100 * _largestDelay), reverbTime, damping, samplingRate);
-			_fixedDelays[3] = new DampedDelay((int)round(0.632450 * _largestDelay), reverbTime, damping, samplingRate);
+			for (int i = 0; i < NUMBER_OF_FDN_DELAYS; i++) 
+				_fixedDelays[i] = new DampedDelay((int)round(fixedDelayTimes[i] * _largestDelay), reverbTimeSeconds, damping, samplingRate);
 
 			float diffscale = (float) round(0.632450 * _largestDelay) / (210 + 159 + 562 + 410);
 			int b, c, d, e;
@@ -39,15 +40,14 @@ namespace Steinberg {
 
 			_inputDiffuser = new Diffuser((int)(diffscale * b), 0.75);
 			_outputSerialDiffusers = new Diffuser*[3];
-			_outputSerialDiffusers[0] = new Diffuser((int)(diffscale * c - b), 0.75);
-			_outputSerialDiffusers[1] = new Diffuser((int)(diffscale * d - c), 0.625);
-			_outputSerialDiffusers[1] = new Diffuser((int)(diffscale * e), 0.625);
+			_outputSerialDiffusers[0] = new Diffuser((int)(diffscale * (c - b)), 0.75);
+			_outputSerialDiffusers[1] = new Diffuser((int)(diffscale * (d - c)), 0.625);
+			_outputSerialDiffusers[2] = new Diffuser((int)(diffscale * e), 0.625);
 
+			float tapDelayTimes[NUMBER_OF_FDN_DELAYS] = { 0.410, 0.300, 0.155, 0.000 };
 			_tapDelays = new Delay*[NUMBER_OF_FDN_DELAYS];
-			_tapDelays[0] = new Delay((int)round(5 + 0.410 * _largestDelay), reverbTime, samplingRate);
-			_tapDelays[1] = new Delay((int)round(5 + 0.300 * _largestDelay), reverbTime, samplingRate);
-			_tapDelays[2] = new Delay((int)round(5 + 0.155 * _largestDelay), reverbTime, samplingRate);
-			_tapDelays[3] = new Delay((int)round(5 + 0.000 * _largestDelay), reverbTime, samplingRate);
+			for (int i = 0; i < NUMBER_OF_FDN_DELAYS; i++)
+				_tapDelays[i] = new Delay((int)round(5 + tapDelayTimes[i] * _largestDelay), reverbTimeSeconds, samplingRate);
 		}
 
 		Room::~Room() {
@@ -68,32 +68,50 @@ namespace Steinberg {
 			delete[] _tapDelays;
 		}
 
-		void Room::feed(float inputSample) {
+		float Room::process(float inputSample) {
+			float output;
+
 			if (fabsf(inputSample) > 100000.0f)
 				inputSample = 0.0f;
 
 			float alteredInputSample = _inputDamper.damp(inputSample);
 			alteredInputSample = _inputDiffuser->diffuse(alteredInputSample);
 
-			float feedback1 = _audioBuffers[0]->peek() + _audioBuffers[1]->peek() + _audioBuffers[2]->peek() + _audioBuffers[3]->peek();
-			float feedback2 = _audioBuffers[0]->peek() - _audioBuffers[1]->peek() + _audioBuffers[2]->peek() - _audioBuffers[3]->peek();
-			float feedback3 = _audioBuffers[0]->peek() + _audioBuffers[1]->peek() - _audioBuffers[2]->peek() - _audioBuffers[3]->peek();
-			float feedback4 = _audioBuffers[0]->peek() - _audioBuffers[1]->peek() - _audioBuffers[2]->peek() + _audioBuffers[3]->peek();
-
-			_audioBuffers[0]->push((sample + feedback1) * (1 - _decay));
-			_audioBuffers[1]->push((sample + feedback2) * (1 - _decay));
-			_audioBuffers[2]->push((sample + feedback3) * (1 - _decay));
-			_audioBuffers[3]->push((sample + feedback4) * (1 - _decay));
-		}
-
-		float Room::listenSample() {
-			float reflectionSum = 0;
-
-			for (int i = 0; i < _numBuffers; i++) {
-				reflectionSum += _audioBuffers[i]->peek();
+			float fixedDelayOutputs[NUMBER_OF_FDN_DELAYS];
+			float tapDelayOutputs[NUMBER_OF_FDN_DELAYS];
+			for (int i = 0; i < NUMBER_OF_FDN_DELAYS; i++) {
+				fixedDelayOutputs[i] = _fixedDelays[i]->pop();
+				tapDelayOutputs[i] = _tapDelays[i]->pop();
+				_tapDelays[i]->feed(alteredInputSample);
 			}
 
-			return reflectionSum;
+			output = 0.0f;
+			int sign = 1;
+			for (int i = 0; i < NUMBER_OF_FDN_DELAYS; i++) {
+				output += sign * (_tailLevel * fixedDelayOutputs[i] + _earlyLevel * tapDelayOutputs[i]);
+				sign = -sign;
+			}
+			output += inputSample * _earlyLevel;
+
+			processHadamardMatrix(fixedDelayOutputs);
+
+			for (int i = 0; i < NUMBER_OF_FDN_DELAYS; i++)
+				_fixedDelays[i]->feed(fixedDelayOutputs[i] + tapDelayOutputs[i]);
+
+			output = _outputSerialDiffusers[0]->diffuse(output);
+			output = _outputSerialDiffusers[1]->diffuse(output);
+			output = _outputSerialDiffusers[2]->diffuse(output);
+
+			return output;
+		}
+
+		void Room::processHadamardMatrix(float* values) {
+			const float dl0 = values[0], dl1 = values[1], dl2 = values[2], dl3 = values[3];
+
+			values[0] = 0.5f*(+dl0 + dl1 - dl2 - dl3);
+			values[1] = 0.5f*(+dl0 - dl1 - dl2 + dl3);
+			values[2] = 0.5f*(-dl0 + dl1 - dl2 + dl3);
+			values[3] = 0.5f*(+dl0 + dl1 + dl2 + dl3);
 		}
 	}
 }
